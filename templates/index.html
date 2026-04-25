@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Car Mileage Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <div class="card">
+
+        <h1>🚗 Car Mileage Predictor</h1>
+
+        <form method="POST">
+
+            <div class="grid">
+
+                <div class="field">
+                    <label>Cylinders</label>
+                    <select name="Cylinders">
+                        {% for c in Cylinders %}
+                        <option value="{{c}}">{{c}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Fuel Type</label>
+                    <select name="Fuel_Type">
+                        {% for f in Fuel_Type %}
+                        <option value="{{f}}">{{f}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Road Type</label>
+                    <select name="Road_Type">
+                        {% for r in Road_Type %}
+                        <option value="{{r}}">{{r}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Age (years)</label>
+                    <select name="Age_years">
+                        {% for a in Age_years %}
+                        <option value="{{a}}">{{a}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Weight (kg)</label>
+                    <input type="number" name="Weight_kg" placeholder="Enter weight" required>
+                </div>
+
+                <div class="field">
+                    <label>Horsepower</label>
+                    <input type="number" name="Horsepower" placeholder="Enter horsepower" required>
+                </div>
+
+            </div>
+
+            <button type="submit">Predict Mileage</button>
+
+        </form>
+
+        {% if prediction %}
+        <div class="result">
+            <h2>Predicted Mileage</h2>
+            <p>{{ prediction }} km/l</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

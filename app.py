@@ -2,26 +2,40 @@ from flask import Flask, render_template, request
 import pandas as pd
 import pickle
 import numpy as np
+import os
 
 app = Flask(__name__)
 
-# Load model
+# ---------------- PATH SETUP ----------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_PATH = os.path.join(BASE_DIR, 'LinearRegression.pkl')
+DATA_PATH = os.path.join(BASE_DIR, 'train.csv')
+
+# ---------------- LOAD MODEL ----------------
 try:
-    model = pickle.load(open('LinearRegression.pkl', 'rb'))
+    with open(MODEL_PATH, 'rb') as f:
+        model = pickle.load(f)
 except Exception as e:
     print("Model loading error:", e)
     model = None
 
-# Load dataset
-car = pd.read_csv('train.csv')
+# ---------------- LOAD DATA ----------------
+try:
+    car = pd.read_csv(DATA_PATH)
+except Exception as e:
+    print("Dataset loading error:", e)
+    car = pd.DataFrame()  # fallback to avoid crash
 
 
+# ---------------- HOME + PREDICT ----------------
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    Cylinders = sorted(car['Cylinders'].unique())
-    Fuel_Type = sorted(car['Fuel_Type'].unique())
-    Road_Type = sorted(car['Road_Type'].unique())
-    Age_years = sorted(car['Age_years'].unique())
+
+    Cylinders = sorted(car['Cylinders'].unique()) if not car.empty else []
+    Fuel_Type = sorted(car['Fuel_Type'].unique()) if not car.empty else []
+    Road_Type = sorted(car['Road_Type'].unique()) if not car.empty else []
+    Age_years = sorted(car['Age_years'].unique()) if not car.empty else []
 
     prediction = None
 
@@ -34,12 +48,24 @@ def index():
             Weight_kg = float(request.form.get('Weight_kg'))
             Horsepower = float(request.form.get('Horsepower'))
 
+            # Create input DataFrame
             input_data = pd.DataFrame(
                 [[Weight_kg, Horsepower, Cylinders_val, Fuel_Type_val, Road_Type_val, Age_years_val]],
-                columns=['Weight_kg', 'Horsepower', 'Cylinders', 'Fuel_Type', 'Road_Type', 'Age_years']
+                columns=[
+                    'Weight_kg',
+                    'Horsepower',
+                    'Cylinders',
+                    'Fuel_Type',
+                    'Road_Type',
+                    'Age_years'
+                ]
             )
 
-            prediction = np.round(model.predict(input_data)[0], 2)
+            # Predict
+            if model:
+                prediction = round(model.predict(input_data)[0], 2)
+            else:
+                prediction = "Model not loaded"
 
         except Exception as e:
             prediction = f"Error: {str(e)}"
@@ -54,5 +80,7 @@ def index():
     )
 
 
+# ---------------- RUN APP ----------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Render dynamic port
+    app.run(host='0.0.0.0', port=port)
